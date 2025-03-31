@@ -146,6 +146,7 @@ func main() {
 	processRepomd()
 	processPrimary()
 	fmt.Println("Done")
+	runtime.GC()
 	PrintMemUsage()
 }
 
