@@ -5,6 +5,13 @@
 </head>
 
 <body class="text-center flex flex-col w-full gap-6 mt-10">
+    <a href="/a" class="text-sm font-semibold ">
+    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        
+            Add Repo
+
+    </button>
+    </a>
     <div
         class="relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md rounded-lg bg-clip-border">
         <table class="w-full text-left table-auto min-w-max text-slate-800">
@@ -17,7 +24,7 @@
                     </th>
                     <th class="p-4">
                         <p class="text-sm leading-none font-normal">
-                            Release
+                            Number of Packages
                         </p>
                     </th>
                     <th class="p-4">
@@ -30,9 +37,9 @@
                             Healthy
                         </p>
                     </th>
-                    <th class="p-4">
+                    <!-- <th class="p-4">
                         <p></p>
-                    </th>
+                    </th> -->
                 </tr>
             </thead>
             <tbody>
@@ -40,29 +47,31 @@
                 <tr class="hover:bg-slate-50">
                     <td class="p-4">
                         <p class="text-sm font-bold">
-                            {{ .Repo }}
+                           {{ .Name }}
                         </p>
                     </td>
                     <td class="p-4">
                         <p class="text-sm">
-                            {{ .Release }}
+                           {{ .Packages }}
                         </p>
                     </td>
                     <td class="p-4">
                         <p class="text-sm">
-                            {{ .LastUpdated }}
+
+                              {{ .LastUpdated }}
                         </p>
                     </td>
                     <td class="p-4">
                         <p class="text-sm">
-                            {{ .Healthly}}
+
+                              {{ .Healthly }}
                         </p>
                     </td>
-                    <td class="p-4">
+                    <!-- <td class="p-4">
                         <a href="/a" class="text-sm font-semibold ">
                             Edit
                         </a>
-                    </td>
+                    </td> -->
                 </tr>
                 {{ end }}
 
