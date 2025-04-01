@@ -3,16 +3,20 @@ package main
 import (
 	"fmt"
 	"go-rpm-checker/repo"
+	"html/template"
 	"net/http"
-	"text/template"
+	"strconv"
+	"time"
 )
 
 var repoPageData RepoistoryPageData
-var repomds = []string{
-	"repodata/repomd2.xml",
-	"repodata/fedora41-everything-os.repomd.xml",
-	"repodata/almalinux9-extras-os.repomd.xml",
-	"repodata/almalinux9-appstream-os.repomd.xml",
+var repoUrls = []string{
+	"https://repo.nagios.com/nagios/9/",
+	"https://repo.almalinux.org/almalinux/9/extras/x86_64/os/",
+	"https://download.rockylinux.org/pub/rocky/9/extras/x86_64/os/",
+	// "https://repo.almalinux.org/almalinux/9/BaseOS/x86_64/os/",
+	"https://download.rockylinux.org/pub/rocky/8/extras/x86_64/os/",
+	// "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/",
 }
 
 type RepoistoryPageData struct {
@@ -20,21 +24,28 @@ type RepoistoryPageData struct {
 }
 
 func updateRepos() {
-	for _, v := range repomds {
+	repoPageData.Repos = []repo.Repo{}
+	for _, v := range repoUrls {
 		fmt.Println("Processing: ", v)
-		metaLocation := repo.ProcessRepomd(v)
-		meta := repo.ProcessPrimary(metaLocation)
-		repoPageData.Repos = append(repoPageData.Repos, repo.Repo{Name: v, Packages: meta.Packages, LastUpdated: meta.Package[0].Time.File, Healthly: true})
-
-		// fmt.Println("Meta: ", meta.Packages)
-		// PrintMemUsage()
+		metaLocation, revision := repo.ProcessRepomd(v)
+		meta := repo.ProcessPrimary(v + metaLocation)
+		i, err := strconv.ParseInt(revision, 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		tm := time.Unix(i, 0)
+		weekAgo := time.Now().Add(-168 * time.Hour)
+		var health string
+		if !tm.After(weekAgo) {
+			health = "‼️"
+		} else {
+			health = "✅"
+		}
+		repoPageData.Repos = append(repoPageData.Repos, repo.Repo{Name: v, Packages: meta.Packages, LastUpdated: tm, Healthly: health})
 	}
 }
 
 func main() {
-
-	// fmt.Println(len(repoPageData.Repos))
-
 	tmpl := template.Must(template.ParseFiles("web/table.html"))
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/x-icon")
@@ -47,7 +58,7 @@ func main() {
 		fmt.Println("Request: ", r.URL.Path)
 		tmpl.Execute(w, repoPageData)
 	})
-	http.HandleFunc("/a", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/update", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		fmt.Println("Request: ", r.URL.Path)
 		updateRepos()

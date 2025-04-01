@@ -6,7 +6,8 @@ import (
 	"encoding/xml"
 	"io"
 	"log"
-	"os"
+	"net/http"
+	"time"
 )
 
 type Repomd struct {
@@ -57,21 +58,21 @@ type Metadata struct {
 type Repo struct {
 	Name        string
 	Packages    string
-	LastUpdated string
-	Healthly    bool
+	LastUpdated time.Time
+	Healthly    string
 }
 
-func ProcessPrimary(file string) Metadata {
-	data, err := os.Open(file)
+func ProcessPrimary(url string) Metadata {
+	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
-	defer data.Close()
 
-	dataValue, err := io.ReadAll(data)
+	dataValue, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	reader := bytes.NewReader(dataValue)
 	gzreader, err := gzip.NewReader(reader)
 	if err != nil {
@@ -84,36 +85,29 @@ func ProcessPrimary(file string) Metadata {
 	var meta Metadata
 	xml.Unmarshal(output, &meta)
 
-	// for _, v := range meta.Package {
-	// 	fmt.Printf("%s %s\n", v.Location.Href, v.Checksum.Text)
-	// }
-
-	// PrintMemUsage()
-	// fmt.Println("Done")
 	return meta
 }
 
-func ProcessRepomd(file string) string {
-	data, err := os.Open(file)
+func ProcessRepomd(url string) (string, string) {
+	resp, err := http.Get(url + "repodata/repomd.xml")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer data.Close()
 
-	dataValue, err := io.ReadAll(data)
 	if err != nil {
 		log.Fatal(err)
 	}
 	var repo Repomd
-	xml.Unmarshal(dataValue, &repo)
-
+	xml.Unmarshal(data, &repo)
 	for _, v := range repo.Data {
 		if v.Type == "primary" {
-			return (v.Location.Href)
+			return v.Location.Href, repo.Revision
 		}
 	}
-	// PrintMemUsage()
-	// fmt.Println("Done")
-
-	return ""
+	return "", ""
 }
