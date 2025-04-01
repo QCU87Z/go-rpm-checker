@@ -13,10 +13,11 @@ var repoPageData RepoistoryPageData
 var repoUrls = []string{
 	"https://repo.nagios.com/nagios/9/",
 	"https://repo.almalinux.org/almalinux/9/extras/x86_64/os/",
-	"https://download.rockylinux.org/pub/rocky/9/extras/x86_64/os/",
+	// "https://download.rockylinux.org/pub/rocky/9/extras/x86_64/os/",
 	// "https://repo.almalinux.org/almalinux/9/BaseOS/x86_64/os/",
-	"https://download.rockylinux.org/pub/rocky/8/extras/x86_64/os/",
+	// "https://download.rockylinux.org/pub/rocky/8/extras/x86_64/os/",
 	// "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/",
+	// "https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/",
 }
 
 type RepoistoryPageData struct {
@@ -36,12 +37,15 @@ func updateRepos() {
 		tm := time.Unix(i, 0)
 		weekAgo := time.Now().Add(-168 * time.Hour)
 		var health string
+		var bad bool
 		if !tm.After(weekAgo) {
 			health = "‼️"
+			bad = true
 		} else {
 			health = "✅"
+			bad = false
 		}
-		repoPageData.Repos = append(repoPageData.Repos, repo.Repo{Name: v, Packages: meta.Packages, LastUpdated: tm, Healthly: health})
+		repoPageData.Repos = append(repoPageData.Repos, repo.Repo{Name: v, Packages: meta.Packages, LastUpdated: tm, Healthly: health, Bad: bad})
 	}
 }
 
@@ -52,6 +56,12 @@ func main() {
 		w.Header().Set("Cache-Control", "public, max-age=7776000")
 		fmt.Println("Request: ", r.URL.Path)
 		http.ServeFile(w, r, "web/favicon.ico")
+	})
+	http.HandleFunc("/output.css", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/css")
+		w.Header().Set("Cache-Control", "public, max-age=7776000")
+		fmt.Println("Request: ", r.URL.Path)
+		http.ServeFile(w, r, "web/output.css")
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
@@ -65,6 +75,7 @@ func main() {
 		// tmpl.Execute(w, repoPageData)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
+
 	fmt.Println("Starting server on :80")
 	http.ListenAndServe(":80", nil)
 }

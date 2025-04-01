@@ -1,7 +1,10 @@
+<!DOCTYPE html>
+<html>
 <head>
     <title>Go + htmx app </title>
     <!-- <script src="https://unpkg.com/htmx.org@2.0.0" integrity="sha384-wS5l5IKJBvK6sPTKa2WZ1js3d947pvWXbPJ1OmWfEuxLgeHcEbjUUA5i9V5ZkpCw" crossorigin="anonymous"></script> -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="./output.css" rel="stylesheet">
     <meta charset="UTF-8"> 
 
 </head>
@@ -44,7 +47,9 @@
             </thead>
             <tbody>
                 {{ range .Repos }}
-                <tr class="hover:bg-slate-50">
+                {{ if .Bad }}
+                <tr class="hover:bg-slate-50  bg-red-50">
+                    
                     <td class="p-4">
                         <p class="text-sm font-bold">
                            {{ .Name }}
@@ -65,8 +70,35 @@
                         <p class="text-sm">
 
                               {{ .Healthly }}
+                              
                         </p>
                     </td>
+                </tr>
+                    {{ else }}
+                <tr class="hover:bg-slate-50  bg-green-50">
+                    <td class="p-4">
+                        <p class="text-sm font-bold">
+                           {{ .Name }}
+                        </p>
+                    </td>
+                    <td class="p-4">
+                        <p class="text-sm">
+                           {{ .Packages }}
+                        </p>
+                    </td>
+                    <td class="p-4">
+                        <p class="text-sm">
+
+                              {{ .LastUpdated }}
+                        </p>
+                    </td>
+                    <td class="p-4">
+                        <p class="text-sm">
+
+                              {{ .Healthly }}
+                              
+                        </p>
+                    {{ end }}
                     <!-- <td class="p-4">
                         <a href="/a" class="text-sm font-semibold ">
                             Edit

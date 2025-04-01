@@ -60,6 +60,7 @@ type Repo struct {
 	Packages    string
 	LastUpdated time.Time
 	Healthly    string
+	Bad         bool
 }
 
 func ProcessPrimary(url string) Metadata {
